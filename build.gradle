@@ -1,0 +1,51 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "io.ratpack:ratpack-gradle:1.8.2"
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+apply plugin: "io.ratpack.ratpack-java"
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+configurations {
+    // configuration that holds jars to include in the jar
+    libs
+}
+
+dependencies {
+    libs('javax.activation:activation:1.1.1')
+    libs 'org.pac4j:pac4j-http:3.0.0'
+    libs 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    libs 'org.junit.jupiter:junit-jupiter-engine'
+    libs "org.slf4j:slf4j-simple:1.7.21"
+    libs 'com.github.pac4j:ratpack-pac4j:ratpack-pac4j-3.0.0'
+    libs group: 'redis.clients', name: 'jedis', version: '2.8.0'
+    configurations.compile.extendsFrom(configurations.libs)
+}
+
+test {
+    project.logger.lifecycle('THIS GRADLE BUILD DOESN\'T RUN TESTS BY DEFAULT! ENSURE REDIS IS LAUNCHED AT LOCALHOST AND UNCOMMENT THE TEST CALL IN BUILD.GRADLE TO RUN TESTS!')
+//    useJUnitPlatform()
+}
+
+jar {
+    from {
+        configurations.libs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    manifest {
+        attributes 'Main-Class': 'com.muchbetter.wallet.Application'
+    }
+}

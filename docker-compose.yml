@@ -1,0 +1,11 @@
+version: '3.3'
+
+services:
+  muchbetter:
+    build: .
+    ports:
+      - "5050:5050"
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
