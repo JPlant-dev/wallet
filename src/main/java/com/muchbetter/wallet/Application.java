@@ -27,12 +27,12 @@ public class Application {
                 RatpackServer.start(server -> startServer(server));
             } catch (Exception e) {
                 LOGGER.error("Unhandled exception thrown. Project may behave in an unexpected manner!");
+                LOGGER.error(e.getMessage());
             }
         }
     }
 
     public static RatpackServerSpec startServer(RatpackServerSpec server) {
-        RedisService redisService = new RedisService(HOST_IP, REDIS_PORT);
         return server.registry(Guice.registry(b -> b
                 .bindInstance(ServerErrorHandler.class, (ctx, error) -> {
                             LOGGER.error("Unexpected error", error);
@@ -40,31 +40,11 @@ public class Application {
                         }
                 )
                 .module(SessionModule.class)
-                .add(redisService)
+                .module(WalletModule.class)
+                .add(RedisService.class)
         ))
-                .handlers(chain -> {
-                    HeaderClient headerClient = new HeaderClient(AUTH_HEADER, new AuthTokenAuthenticator(redisService));
-                    chain
-                            .all(RatpackPac4j.authenticator(headerClient))
-                            .path("login", ctx -> ctx.byMethod(m -> m
-                                    .post(new LoginBlock(ctx, ctx.get(RedisService.class).getJedis()))))
-                            .all(RatpackPac4j.requireAuth(HeaderClient.class)) // all subsequent handlers must have a valid token
-                            .path("transactions", ctx -> ctx.byMethod(m -> m
-                                    .get(new TransactionsBlock(ctx,
-                                            ctx.get(RedisService.class).getJedis(),
-                                            TokenUtil.stripBearerToken(ctx.getRequest().getHeaders().get("Authorization")))))
-                            )
-                            .path("balance", ctx -> ctx.byMethod(m -> m
-                                    .get(new BalanceBlock(ctx,
-                                            ctx.get(RedisService.class).getJedis(),
-                                            TokenUtil.stripBearerToken(ctx.getRequest().getHeaders().get("Authorization")))))
-                            )
-                            .path("spend", ctx -> ctx.byMethod(m -> m
-                                    .post(new SpendBlock(ctx,
-                                            ctx.get(RedisService.class).getJedis(),
-                                            TokenUtil.stripBearerToken(ctx.getRequest().getHeaders().get("Authorization")))))
-                            );
-                });
+                .handlers(chain -> chain.insert(WalletAction.class)
+                );
     }
 
     // todo more stringent parsing
