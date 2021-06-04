@@ -1,5 +1,6 @@
 package com.muchbetter.wallet.block;
 
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.service.Service;
@@ -7,6 +8,7 @@ import ratpack.service.StartEvent;
 import ratpack.service.StopEvent;
 import redis.clients.jedis.Jedis;
 
+@Singleton
 public class RedisService implements Service {
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisService.class);
 
@@ -14,9 +16,10 @@ public class RedisService implements Service {
     private final String host;
     private final int port;
 
-    public RedisService(String host, int port) {
-        this.host = host;
-        this.port = port;
+    public RedisService() {
+        //todo pass these in somehow
+        this.host = "localhost";
+        this.port = 6379;
     }
 
     public void onStart(StartEvent event) {
