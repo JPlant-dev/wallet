@@ -52,7 +52,7 @@ public class ApplicationTransactionTest {
                     ReceivedResponse transactionResp = httpClient.requestSpec(rSpec -> rSpec.headers(headers -> headers.set("Authorization", authToken))).get("transactions");
                     assertEquals(200, transactionResp.getStatusCode());
                     String s = transactionResp.getBody().getText();
-                    assertEquals("[{\"date\":1481798673000,\"description\":\"Some item\",\"amount\":1.45,\"currency\":\"GBP\"}]", s);
+                    assertEquals("[{\"date\":\"2016-12-15T10:44:33Z\",\"description\":\"Some item\",\"amount\":1.45,\"currency\":\"GBP\"}]", s);
                 });
     }
 
@@ -93,7 +93,7 @@ public class ApplicationTransactionTest {
                     ReceivedResponse transactionResp = httpClient.requestSpec(rSpec -> rSpec.headers(headers -> headers.set("Authorization", authToken))).get("transactions");
                     assertEquals(200, transactionResp.getStatusCode());
                     String s = transactionResp.getBody().getText();
-                    assertEquals("[{\"date\":1608029073000,\"description\":\"Item 2\",\"amount\":999999.0,\"currency\":\"GBP\"}, {\"date\":1481798673000,\"description\":\"Some item\",\"amount\":1.45,\"currency\":\"GBP\"}]", s);
+                    assertEquals("[{\"date\":\"2020-12-15T10:44:33Z\",\"description\":\"Item 2\",\"amount\":999999.0,\"currency\":\"GBP\"}, {\"date\":\"2016-12-15T10:44:33Z\",\"description\":\"Some item\",\"amount\":1.45,\"currency\":\"GBP\"}]", s);
                 });
     }
 
