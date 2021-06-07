@@ -1,6 +1,9 @@
 package com.muchbetter.wallet.block;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.muchbetter.wallet.RedisConfig;
+import com.muchbetter.wallet.RedisConfigModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.service.Service;
@@ -13,17 +16,17 @@ public class RedisService implements Service {
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisService.class);
 
     private Jedis jedis;
-    private final String host;
-    private final int port;
+    private String host;
+    private int port;
 
-    public RedisService() {
-        //todo pass these in somehow
-        this.host = "localhost";
-        this.port = 6379;
+    @Inject
+    public RedisService(RedisConfig config) {
+        this.host = config.getHost();
+        this.port = config.getPort();
     }
 
     public void onStart(StartEvent event) {
-        LOGGER.info("Creating new Jedis instance");
+//      null/empty hosts are handled as localhost by jedis
         jedis = new Jedis(host, port);
     }
 
@@ -47,4 +50,6 @@ public class RedisService implements Service {
     public Jedis getJedis() {
         return jedis;
     }
+
+
 }
