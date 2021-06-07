@@ -7,8 +7,11 @@ import org.pac4j.http.client.direct.HeaderClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.error.ServerErrorHandler;
+import ratpack.func.Function;
 import ratpack.guice.Guice;
+import ratpack.guice.internal.GuiceUtil;
 import ratpack.pac4j.RatpackPac4j;
+import ratpack.registry.Registry;
 import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerSpec;
 import ratpack.session.SessionModule;
@@ -32,8 +35,8 @@ public class Application {
         }
     }
 
-    public static RatpackServerSpec startServer(RatpackServerSpec server) {
-        return server.registry(Guice.registry(b -> b
+    public static Function<Registry, Registry> initialiseRegistry() {
+        return Guice.registry(b -> b
                 .bindInstance(ServerErrorHandler.class, (ctx, error) -> {
                             LOGGER.error("Unexpected error", error);
                             ctx.render("Unexpected error - please view server logs");
@@ -41,9 +44,21 @@ public class Application {
                 )
                 .module(SessionModule.class)
                 .module(WalletModule.class)
+                .module(new RedisConfigModule(new RedisConfig(HOST_IP, REDIS_PORT)))
+                //These have to be specified in the WalletModule or Ratpack can't find them
                 .add(RedisService.class)
-        ))
-                .handlers(chain -> chain.insert(WalletAction.class)
+        );
+    }
+
+    public static RatpackServerSpec startServer(RatpackServerSpec server) {
+        return server.registry(initialiseRegistry())
+                .handlers(chain -> {
+                            // annoyingly, we need to init the RedisService with these values here
+                            // if we're parsing them from command line
+//                            chain.getRegistry().get(RedisService.class).init(
+//                                    HOST_IP, REDIS_PORT);
+                            chain.insert(WalletAction.class);
+                }
                 );
     }
 
